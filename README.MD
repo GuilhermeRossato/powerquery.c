@@ -4,15 +4,19 @@ A practical experiment to test how closely can we 'execute' Powerquery M code wi
 
 ## What is Power Query
 
-It is a data-focused object-oriented programming langauge known as `M`. `Powerquery` refers to a data connection technology that allows you to load, transform and extract data in one way into another. And as of now (12/2021) Microsoft Azure is developing a Data Cloud Service based on Powerquery called Azure Data Wrangling.
-
-Powerquery features are organized in functions inside modules that manipulate data, which is an almost perfect **programming-language agnostic** structure, in other words, it can work in a multitude of programming languages with almost no change.
+It is a data-focused object-oriented programming language created by Microsoft known as `M` and used in PowerBI and Excel. `Powerquery` also refers to a data connection technology that allows you to load, transform and extract data in a multitude of ways (the powerquery interface, which is what I'm trying to recreate).
 
 ## How is this useful
 
+As of now (12/2021) Microsoft Azure is developing a Data Cloud Service based on Powerquery called Azure Data Wrangling. This means that they believe that powerquery is powerful enough to create a whole new category of Cloud services. The ability to recreate difficult projects (hint: the ones Microsoft are making) is very valuable for me professionally.
+
+Powerquery features are organized in functions inside modules that manipulate data, which is a great **programming-language agnostic** structure, which means that it can work in a multitude of programming languages with almost no change, as long as the programming language is OOP-based or supports a multitude of first first-class instances such as functions.
+
+To put it succintly: If I can make powerquery in C, not only I understand it deeply, but I can also make this with sticks and stones.
+
 Powerquery is a good language to transform data, so by using its interface we can forget about language-specific details, and focus on the process, which is predictable when you know the functions you need.
 
-For example: How do you retrieve a string's length in `<insert language>`?
+Suppose you need to retrieve a string's length in `<insert language>`?
 
 ```js
 // Javascript
@@ -40,9 +44,9 @@ txt = "Hello World"
 result = len(txt)
 ```
 
-It's not difficult, the problem is that each language has its own interfaces, sometimes needing to import stuff, and each with it own methods or operations, that is true for most language in most aspects: Each language has a unique way of doing every other little thing.
+It's not difficult, the problem is that each language has its own interfaces, sometimes needing to import stuff due to the primitive nature of the language, and each with it own methods or operations, that is true for most language in most aspects: Each language has a unique way of doing every other little thing.
 
-Like I already mentioned, Powerquery's operations are mostly based on methods of modules, meaning that if you want to do anything, you need to know the module and the function to do that thing:
+Powerquery's operations are mostly based on methods of modules, meaning that if you want to do anything, you need to know the module and the function to do that thing:
 
 ```m
 // Powerquery
@@ -50,7 +54,7 @@ txt = "Hello World",
 result = Text.Length(txt)
 ```
 
-Powerquery has its own idea of how things ought to be done, just like other languages, in the above example we used the `Length` method of the `Text` module.
+In the above example we used the `Length` method of the `Text` module.
 
 So, what if instead we used module's functionality in other languages, that is, export a `Text` *object* that had a `Length` method, how would that look like?
 
@@ -72,9 +76,11 @@ txt = "Hello World"
 result = Text.Length(txt)
 ```
 
-Given a good definition of `Text` and `Length`, these are all valid syntax for each programming language.
+Given a good definition of `Text` and `Length`, these are all valid syntax for each programming language. 
 
 We can then hope to unify languages data transformations by using these "modules", as most languages, even if not strictly object-oriented, allow you to create the similar syntax.
+
+Another case of a fully featured powerquery script:
 
 ```m
 // Powerquery M
@@ -89,33 +95,7 @@ in
 
 The above code is a typical way to load a CSV file from disk into a table where the first row is the column header.
 
-The code below is naturally valid javascript code:
-
-```js
-// Javascript
-const { File, Csv, Table } = require("powerquery-interface"); // Module doesn't exist yet
-
-const filePath = Text.From("C:/table.csv");
-const content = File.Contents(filePath);
-const csv = Csv.Document(content);
-const table = Table.PromoteHeaders(csv);
-```
-We are able to convert from PowerQuery M into the above representation with ease, it should even be trivial to write a program that receives a source in the M language and outputs Javascript source code.
-
-That is true for multiple languages:
-
-```python
-# Python
-import Text
-import File
-import Csv
-import Table
-
-filePath = Text.From("C:/table.csv")
-content = File.Contents(filePath)
-csv = Csv.Document(content)
-table = Table.PromoteHeaders(csv)
-```
+This is how you would do it in C:
 
 ```c
 // C
@@ -130,7 +110,7 @@ void main() {
 }
 ```
 
-That last one is C, and all we had to do is add semicolons and the "HANDLE" type identifier and it became a fully-featured ETL environment, given that `powerquery.h` actually implements what we need.
+The structure is a little different, but this is an ETL environment given that `powerquery.h` actually implements what we need.
 
 If you know the powerquery's interface method, that is, the functions it exposes, then you already have expectations that the `File.Contents` result should be passed to `Csv.Document`, then all that is left is how to tell the computer what you want in that particular language.
 
@@ -233,23 +213,17 @@ Order Date,Product,Quantity,Double Quantity
 
 ## Theoretical Part
 
-By keeping the "depth" of the call hierarchy to two levels (i.e. a method inside a object) we can easily reason about the state of the variables being transformed and the operation being performed.
+*Caution: The following are explanations and theoretical conjectures about how to simplify programming.*
 
-Many languages also support creating modules and their methods, which makes the syntax sufficiently generic so that we can implement in many other languges.
+By keeping the "depth" of the call hierarchy to two levels (i.e. a method inside a object) we can easily reason about the state of the variables being transformed and the results of the operations, as well as the sequence.
 
-Besides, in the context of imutable programming languages, we can do interesting inferences about how a programming languages work by restricting them into a domain we already understand like language.
+In the context of imutable programming languages, we can do interesting inferences about how a programming languages work by restricting them into a domain we already understand like language.
 
 So to summarize in a few points:
 
 1. Language Independent Contracts - If you see a familiar language construct, e.g. `Text.Length("Hi")`, you can infer about its result immediately regardless of the programming language you see.
-2. Translability - Due to the generic nature of the statements, you can easily translate between object-oriented programming languages, even to not-so object-oriented languages.
-3. Superficiality - There isn't deep inheritance, methods of instances, or any redirection besides a module/namespace that exports a function, which is easy to memorize or, at least, predict.
-
-First point is important because you can learn one language to learn the others, i.e. you become productive in any language quickly if all follows this interface.
-
-Second point is important because even if you don't learn other languages at all because you can run the 'same' code in a environment that allows you to save to files (i.e. pipelines).
-
-Third point is important because your brain and your attention are limited resources. If you have deep inheritance or submodules of modules it's slighly difficult to find the code that's really running, which methods are being called and most importantly, the way everything is connected.
+3. Translability - Due to the generic nature of the statements, you can easily translate between object-oriented programming languages, even to not-so object-oriented languages.
+4. Superficiality - There isn't deep inheritance, methods of instances, or any redirection besides a module/namespace that exports a function, which is easy to memorize or, at least, predict.
 
 ## How does the module access works in C?
 
